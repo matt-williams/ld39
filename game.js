@@ -8,6 +8,7 @@ function Game(canvas) {
 
   this.initTextures();
   this.initControls();
+  this.background = new Background(this.gl);
   this.robots = [
     new Robot(this.gl, Robot.BLUE),
     new Robot(this.gl, Robot.RED, 256, 0, -1),
@@ -20,6 +21,7 @@ function Game(canvas) {
 Game.prototype.initTextures = function() {
   var gl = this.gl;
   Robot.init(gl);
+  Background.init(gl);
   Sprite.init(gl);
 }
 
@@ -160,6 +162,8 @@ Game.prototype.draw = function() {
   gl.disable(gl.DEPTH_TEST);
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+  this.background.draw(this.view);
 
   for (var ii = 0; ii < this.robots.length; ii++) {
     this.robots[ii].draw(this.view);
@@ -392,6 +396,46 @@ Robot.prototype.draw = function(view) {
 
 Robot.prototype.spawnStar = function() {
   return new Sprite(this.gl, Sprite.STAR, 22 * this.facing + this.x + Math.random() * 68 - 34, 48 + this.y + Math.random() * 68 - 34)
+}
+
+function Background(gl) {
+  this.gl = gl;
+}
+
+Background.init = function(gl) {
+  Background.PROGRAM = new Program(
+    gl,
+    ["uniform mat3 view;",
+     "uniform mat3 model;",
+     "attribute vec2 xy;",
+     "attribute vec2 uv;",
+     "varying lowp vec2 uv2;",
+     "void main() {",
+     "  gl_Position = vec4(vec3(xy, 1) * model * view, 1);",
+     "  uv2 = uv;",
+     "}"],
+    ["uniform sampler2D texture;",
+     "varying lowp vec2 uv2;",
+     "void main() {",
+     "  gl_FragColor = texture2D(texture, uv2);",
+     "}"]);
+
+  Background.BACKGROUND = new Texture(gl, "background.png");
+
+  Background.XY = new StaticBuffer(gl, [-5, -5, -5,  5,  5, -5,
+                                         5, -5,  5,  5, -5,  5]);
+  Background.UV = new StaticBuffer(gl, [-4.5, 5.5, -4.5, -4.5, 5.5, 5.5,
+                                         5.5, 5.5, 5.5, -4.5, -4.5, -4.5]);
+}
+
+Background.prototype.draw = function(view) {
+  var gl = this.gl;
+  var model = [1024,   0, 0,
+                  0, 512, 0,
+                  0,   0, 1];
+  Background.BACKGROUND.use();
+  Background.PROGRAM.use({view: view, model: model, texture: 0}, {xy: Background.XY, uv: Background.UV});
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 
 function Sprite(gl, sprite, x, y, r, vx, vy, vr) {
