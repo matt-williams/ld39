@@ -10,7 +10,7 @@ function Game(canvas) {
   this.initControls();
   this.background = new Background(this.gl);
   this.robots = [
-    new Robot(this.gl, Robot.BLUE),
+    new Robot(this.gl, Robot.BLUE, -256, 0, 1),
     new Robot(this.gl, Robot.RED, 256, 0, -1),
   ];
   this.sprites = [];
