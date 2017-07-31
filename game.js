@@ -27,12 +27,12 @@ Game.prototype.initControls = function() {
   window.addEventListener("keydown", function(evt) {
     evt = evt || window.event;
     evt.preventDefault();
-    otherThis.keysDown[String.fromCharCode(evt.keyCode)] = true;
+    otherThis.keysDown[evt.keyCode] = true;
   }, false);
   window.addEventListener("keyup", function(evt) {
     evt = evt || window.event;
     evt.preventDefault();
-    delete(otherThis.keysDown[String.fromCharCode(evt.keyCode)]);
+    delete(otherThis.keysDown[evt.keyCode]);
   }, false);
 }
 
@@ -47,23 +47,38 @@ Game.prototype.resize = function() {
                        0,          0, 1];
 }
 
+Game.prototype.handleKeys = function() {
+  if (this.keysDown[65]) {
+    this.robots[0].facing = -1;
+    this.robots[0].walking = true;
+  } else if (this.keysDown[68]) {
+    this.robots[0].facing = 1;
+    this.robots[0].walking = true;
+  } else {
+    this.robots[0].walking = false;
+  }
+
+  if (this.keysDown[37]) {
+    this.robots[1].facing = -1;
+    this.robots[1].walking = true;
+  } else if (this.keysDown[39]) {
+    this.robots[1].facing = 1;
+    this.robots[1].walking = true;
+  } else {
+    this.robots[1].walking = false;
+  }
+
+}
+
 Game.prototype.draw = function() {
+  this.handleKeys();
+
   var gl = this.gl;
   gl.clearColor(0, 0, 0, 1);
   gl.clear(gl.COLOR_BUFFER_BIT);
   gl.disable(gl.DEPTH_TEST);
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-  if (this.keysDown['A']) {
-    this.robots[0].facing = -1;
-    this.robots[0].walking = true;
-  } else if (this.keysDown['D']) {
-    this.robots[0].facing = 1;
-    this.robots[0].walking = true;
-  } else {
-    this.robots[0].walking = false;
-  }
 
   for (var ii = 0; ii < this.robots.length; ii++) {
     this.robots[ii].draw(this.view);
